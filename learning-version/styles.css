@@ -1,0 +1,75 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f7f5;
+  color: #17231d;
+  padding: 40px;
+}
+
+button {
+  background-color: #174a36;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+h2 {
+  margin-top: 40px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin: 16px 0 6px;
+}
+
+input,
+select {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  padding: 12px;
+  border: 1px solid #cbd5cf;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+#saveButton {
+  margin-top: 18px;
+}
+
+#applicationList {
+  list-style: none;
+  padding: 0;
+  max-width: 700px;
+}
+
+#applicationList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  background-color: white;
+  border: 1px solid #d8e0db;
+  border-left: 5px solid #174a36;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(23, 74, 54, 0.08);
+}
+
+[data-application-id] {
+  background-color: white;
+  color: #a33a3a;
+  border: 1px solid #e1bcbc;
+  padding: 7px 11px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+[data-application-id]:hover {
+  background-color: #fff0f0;
+}
+

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Application Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Job Application Tracker</h1>
+  <p>Track every opportunity in one place.</p>
+  <button id="addButton">Add Application</button>
+
+  <h2>Add a new application</h2>
+
+  <label for="company">Company</label>
+  <input id="company" type="text" placeholder="Example: Amazon">
+
+  <label for="role">Job title</label>
+  <input id="role" type="text" placeholder="Example: Cloud Engineer">
+
+  <label for="status">Status</label>
+  <select id="status">
+    <option value="Saved">Saved</option>
+    <option value="Applied" selected>Applied</option>
+    <option value="Interview">Interview</option>
+    <option value="Offer">Offer</option>
+    <option value="Rejected">Rejected</option>
+  </select>
+
+  <label for="dateApplied">Date applied</label>
+  <input id="dateApplied" type="date">
+
+  <button id="saveButton">Save Application</button>
+
+  <h2>My Applications</h2>
+  <p id="totalCount"></p>
+  <button id="clearButton">Clear All Applications</button>
+  <ul id="applicationList"></ul>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
