@@ -2,4 +2,4 @@ __pycache__/
 *.py[cod]
 .aws-sam/
 .DS_Store
-
+learning-version/config.js

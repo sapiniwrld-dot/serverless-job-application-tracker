@@ -3,7 +3,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 
-import boto3
+import boto3  # type: ignore
 
 
 table = boto3.resource("dynamodb").Table(
@@ -66,7 +66,43 @@ def list_applications():
 def delete_application(application_id):
     table.delete_item(Key={"applicationId": application_id})
     return api_response(200, {"message": "Application deleted"})
+def update_application(event, application_id):
+    try:
+        request_body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return api_response(
+            400,
+            {"message": "Request body must be valid JSON"}
+        )
 
+    new_status = str(request_body.get("status", "")).strip()
+    allowed_statuses = [
+        "Saved",
+        "Applied",
+        "Interview",
+        "Offer",
+        "Rejected"
+    ]
+
+    if new_status not in allowed_statuses:
+        return api_response(
+            400,
+            {"message": "Please provide a valid status"}
+        )
+
+    result = table.update_item(
+        Key={"applicationId": application_id},
+        UpdateExpression="SET #status = :status",
+        ExpressionAttributeNames={
+            "#status": "status"
+        },
+        ExpressionAttributeValues={
+            ":status": new_status
+        },
+        ReturnValues="ALL_NEW"
+    )
+
+    return api_response(200, result["Attributes"])
 
 def handler(event, context):
     http_context = (
@@ -90,6 +126,9 @@ def handler(event, context):
 
     if path.endswith("/applications") and method == "POST":
         return create_application(event)
+
+    if method == "PUT" and application_id:
+        return update_application(event, application_id)
 
     if method == "DELETE" and application_id:
         return delete_application(application_id)

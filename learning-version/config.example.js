@@ -1,0 +1,3 @@
+window.APP_CONFIG = {
+  API_URL: "https://your-api-id.execute-api.us-east-1.amazonaws.com"
+};

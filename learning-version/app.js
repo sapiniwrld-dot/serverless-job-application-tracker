@@ -1,11 +1,10 @@
+const API_URL = window.APP_CONFIG.API_URL;
 const addButton = document.getElementById("addButton");
 const saveButton = document.getElementById("saveButton");
 const clearButton = document.getElementById("clearButton");
 const totalCount = document.getElementById("totalCount");
 const applicationList = document.getElementById("applicationList");
-const savedApplications =
-  JSON.parse(localStorage.getItem("applications")) || [];
-
+let savedApplications = [];
 savedApplications.forEach(function (application) {
   if (!application.id) {
     application.id = crypto.randomUUID();
@@ -22,6 +21,32 @@ function saveToBrowser() {
 function updateTotal() {
   totalCount.textContent =
     savedApplications.length + " applications tracked";
+}
+
+async function loadApplicationsFromApi() {
+  try {
+    const response = await fetch(API_URL + "/applications");
+
+    if (!response.ok) {
+      throw new Error("Could not load applications");
+    }
+
+    const data = await response.json();
+
+    savedApplications = data.applications.map(function (application) {
+      return {
+        ...application,
+        id: application.applicationId
+      };
+    });
+
+    applicationList.innerHTML = "";
+    savedApplications.forEach(createApplicationItem);
+    updateTotal();
+  } catch (error) {
+    console.error(error);
+    alert("Could not connect to the AWS API.");
+  }
 }
 
 function createApplicationItem(application) {
@@ -47,9 +72,7 @@ function createApplicationItem(application) {
   applicationList.appendChild(item);
 }
 
-saveToBrowser();
-savedApplications.forEach(createApplicationItem);
-updateTotal();
+loadApplicationsFromApi();
 
 addButton.addEventListener("click", function () {
   document.getElementById("company").focus();
@@ -68,7 +91,7 @@ clearButton.addEventListener("click", function () {
   updateTotal();
 });
 
-applicationList.addEventListener("click", function (event) {
+applicationList.addEventListener("click", async function (event) {
   if (event.target.matches("[data-edit-id]")) {
     const application = savedApplications.find(
       function (savedApplication) {
@@ -98,9 +121,30 @@ applicationList.addEventListener("click", function (event) {
       return;
     }
 
-    application.status = cleanedStatus;
-    saveToBrowser();
-    window.location.reload();
+    try {
+      const response = await fetch(
+        API_URL + "/applications/" + application.id,
+        {
+          method: "PUT",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({
+            status: cleanedStatus
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("AWS could not update the status");
+      }
+
+      await loadApplicationsFromApi();
+    } catch (error) {
+      console.error(error);
+      alert("The status could not be updated in AWS.");
+    }
+
     return;
   }
 
@@ -113,23 +157,34 @@ applicationList.addEventListener("click", function (event) {
     return;
   }
 
-  const applicationIndex = savedApplications.findIndex(
-    function (application) {
-      return application.id === event.target.dataset.applicationId;
+  const applicationId = event.target.dataset.applicationId;
+
+  try {
+    const response = await fetch(
+      API_URL + "/applications/" + applicationId,
+      {
+        method: "DELETE"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("AWS could not delete the application");
     }
-  );
 
-  if (applicationIndex === -1) {
-    return;
+    savedApplications = savedApplications.filter(function (application) {
+      return application.id !== applicationId;
+    });
+    saveToBrowser();
+    applicationList.innerHTML = "";
+    savedApplications.forEach(createApplicationItem);
+    updateTotal();
+  } catch (error) {
+    console.error(error);
+    alert("The application could not be deleted from AWS.");
   }
-
-  savedApplications.splice(applicationIndex, 1);
-  saveToBrowser();
-  event.target.closest("li").remove();
-  updateTotal();
 });
 
-saveButton.addEventListener("click", function () {
+saveButton.addEventListener("click", async function () {
   const company = document.getElementById("company").value;
   const role = document.getElementById("role").value;
   const status = document.getElementById("status").value;
@@ -141,19 +196,31 @@ saveButton.addEventListener("click", function () {
   }
 
   const newApplication = {
-    id: crypto.randomUUID(),
     company,
     role,
     status,
     dateApplied
   };
 
-  savedApplications.push(newApplication);
-  createApplicationItem(newApplication);
-  saveToBrowser();
-  updateTotal();
+  try {
+    const response = await fetch(API_URL + "/applications", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify(newApplication)
+    });
 
-  document.getElementById("company").value = "";
-  document.getElementById("role").value = "";
+    if (!response.ok) {
+      throw new Error("AWS could not save the application");
+    }
+
+    document.getElementById("company").value = "";
+    document.getElementById("role").value = "";
+
+    await loadApplicationsFromApi();
+  } catch (error) {
+    console.error(error);
+    alert("The application could not be saved to AWS.");
+  }
 });
-

@@ -37,6 +37,7 @@ Resources:
           - "DELETE"
           - "GET"
           - "POST"
+          - "PUT"
 
   JobTrackerFunction:
     Type: AWS::Serverless::Function
@@ -68,6 +69,12 @@ Resources:
             ApiId: !Ref JobTrackerApi
             Path: /applications
             Method: POST
+        UpdateApplication:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref JobTrackerApi
+            Path: /applications/{id}
+            Method: PUT
         DeleteApplication:
           Type: HttpApi
           Properties:
