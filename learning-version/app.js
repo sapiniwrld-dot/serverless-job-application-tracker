@@ -1,21 +1,21 @@
 const API_URL = window.APP_CONFIG.API_URL;
 const addButton = document.getElementById("addButton");
 const saveButton = document.getElementById("saveButton");
-const clearButton = document.getElementById("clearButton");
 const totalCount = document.getElementById("totalCount");
 const applicationList = document.getElementById("applicationList");
-let savedApplications = [];
-savedApplications.forEach(function (application) {
-  if (!application.id) {
-    application.id = crypto.randomUUID();
-  }
-});
 
-function saveToBrowser() {
-  localStorage.setItem(
-    "applications",
-    JSON.stringify(savedApplications)
-  );
+let savedApplications = [];
+
+function getAuthorizationHeaders() {
+  const token = window.jobTrackerAuth.getAccessToken();
+
+  if (!token) {
+    return {};
+  }
+
+  return {
+    Authorization: "Bearer " + token
+  };
 }
 
 function updateTotal() {
@@ -25,7 +25,12 @@ function updateTotal() {
 
 async function loadApplicationsFromApi() {
   try {
-    const response = await fetch(API_URL + "/applications");
+    const response = await fetch(
+      API_URL + "/applications",
+      {
+        headers: getAuthorizationHeaders()
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Could not load applications");
@@ -72,23 +77,19 @@ function createApplicationItem(application) {
   applicationList.appendChild(item);
 }
 
-loadApplicationsFromApi();
+window.jobTrackerAuth.ready.then(function () {
+  const token = window.jobTrackerAuth.getAccessToken();
+
+  if (token) {
+    loadApplicationsFromApi();
+  } else {
+    totalCount.textContent =
+      "Sign in to view applications";
+  }
+});
 
 addButton.addEventListener("click", function () {
   document.getElementById("company").focus();
-});
-
-clearButton.addEventListener("click", function () {
-  const shouldClear = confirm("Delete all saved applications?");
-
-  if (!shouldClear) {
-    return;
-  }
-
-  savedApplications.length = 0;
-  localStorage.removeItem("applications");
-  applicationList.innerHTML = "";
-  updateTotal();
 });
 
 applicationList.addEventListener("click", async function (event) {
@@ -127,6 +128,7 @@ applicationList.addEventListener("click", async function (event) {
         {
           method: "PUT",
           headers: {
+            ...getAuthorizationHeaders(),
             "content-type": "application/json"
           },
           body: JSON.stringify({
@@ -163,7 +165,8 @@ applicationList.addEventListener("click", async function (event) {
     const response = await fetch(
       API_URL + "/applications/" + applicationId,
       {
-        method: "DELETE"
+        method: "DELETE",
+        headers: getAuthorizationHeaders()
       }
     );
 
@@ -174,7 +177,7 @@ applicationList.addEventListener("click", async function (event) {
     savedApplications = savedApplications.filter(function (application) {
       return application.id !== applicationId;
     });
-    saveToBrowser();
+
     applicationList.innerHTML = "";
     savedApplications.forEach(createApplicationItem);
     updateTotal();
@@ -206,6 +209,7 @@ saveButton.addEventListener("click", async function () {
     const response = await fetch(API_URL + "/applications", {
       method: "POST",
       headers: {
+        ...getAuthorizationHeaders(),
         "content-type": "application/json"
       },
       body: JSON.stringify(newApplication)

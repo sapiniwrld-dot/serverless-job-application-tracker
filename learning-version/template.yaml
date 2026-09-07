@@ -9,6 +9,52 @@ Globals:
     MemorySize: 128
 
 Resources:
+  JobTrackerUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub "${AWS::StackName}-users"
+      UserPoolTier: LITE
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+          RequireUppercase: true
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+  JobTrackerUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub "${AWS::StackName}-web-client"
+      UserPoolId: !Ref JobTrackerUserPool
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      SupportedIdentityProviders:
+        - COGNITO
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - openid
+        - email
+        - profile
+      CallbackURLs:
+        - "http://localhost:8080"
+      LogoutURLs:
+        - "http://localhost:8080"
+  JobTrackerUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub "job-tracker-${AWS::AccountId}-${AWS::Region}"
+      UserPoolId: !Ref JobTrackerUserPool
+      ManagedLoginVersion: 1
   ApplicationsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -25,6 +71,15 @@ Resources:
   JobTrackerApi:
     Type: AWS::Serverless::HttpApi
     Properties:
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              issuer: !Sub "https://cognito-idp.${AWS::Region}.${AWS::URLSuffix}/${JobTrackerUserPool}"
+              audience:
+                - !Ref JobTrackerUserPoolClient
+        DefaultAuthorizer: CognitoAuthorizer
       DefaultRouteSettings:
         ThrottlingBurstLimit: 2
         ThrottlingRateLimit: 1
@@ -32,6 +87,7 @@ Resources:
         AllowOrigins:
           - "*"
         AllowHeaders:
+          - "authorization"
           - "content-type"
         AllowMethods:
           - "DELETE"
@@ -57,6 +113,8 @@ Resources:
             ApiId: !Ref JobTrackerApi
             Path: /health
             Method: GET
+            Auth:
+              Authorizer: NONE
         ListApplications:
           Type: HttpApi
           Properties:
@@ -83,7 +141,17 @@ Resources:
             Method: DELETE
 
 Outputs:
+  UserPoolId:
+    Description: Cognito user pool ID
+    Value: !Ref JobTrackerUserPool
+
+  UserPoolClientId:
+    Description: Cognito web client ID
+    Value: !Ref JobTrackerUserPoolClient
+
+  CognitoDomain:
+    Description: Cognito hosted login domain
+    Value: !Sub "https://${JobTrackerUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"
   ApiUrl:
     Description: URL for the Job Tracker API
     Value: !Sub "https://${JobTrackerApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
-

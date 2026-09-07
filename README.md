@@ -1,13 +1,15 @@
 # Serverless Job Application Tracker
 
-A full-stack job application tracker built with vanilla JavaScript and a serverless AWS backend.
+A full-stack job application tracker with secure user authentication and a serverless AWS backend.
 
 ## Features
 
-- Create and view job applications
-- Update application statuses
-- Delete individual applications
-- Store data permanently in Amazon DynamoDB
+- Sign up and sign in with Amazon Cognito
+- Authorization Code flow with PKCE
+- JWT-protected API routes
+- Private application data for each user
+- Create, view, update, and delete job applications
+- Store application data in Amazon DynamoDB
 - Deploy infrastructure with AWS SAM and CloudFormation
 
 ## Architecture
@@ -15,41 +17,26 @@ A full-stack job application tracker built with vanilla JavaScript and a serverl
 ```text
 Browser
    |
-API Gateway
+   |-- Sign in --> Amazon Cognito
    |
-AWS Lambda
-   |
-Amazon DynamoDB
+   |-- JWT --> Amazon API Gateway
+                    |
+                 AWS Lambda
+                    |
+              Amazon DynamoDB
 ```
 
 ## Technologies
 
 - HTML, CSS, and JavaScript
 - Python
+- Amazon Cognito
 - AWS Lambda
 - Amazon API Gateway
 - Amazon DynamoDB
 - AWS SAM
 - AWS CloudFormation
 - Git and GitHub
-
-## Run locally
-
-Create your local configuration:
-
-```bash
-cp learning-version/config.example.js learning-version/config.js
-```
-
-Open `learning-version/config.js` and replace the example address with your deployed API address.
-
-Start the frontend:
-
-```bash
-python3 -m http.server 8080 --directory learning-version
-```
-
-Then visit <http://localhost:8080>.
 
 ## Deploy the AWS backend
 
@@ -60,6 +47,39 @@ sam build
 sam deploy --guided
 ```
 
+## Configure the frontend
+
+Copy the example configuration:
+
+```bash
+cp learning-version/config.example.js learning-version/config.js
+```
+
+Open `learning-version/config.js` and replace the placeholders with the outputs from your deployed CloudFormation stack.
+
+## Run locally
+
+From the repository root:
+
+```bash
+python3 -m http.server 8080 --directory learning-version
+```
+
+Then visit <http://localhost:8080>.
+
 ## Security
 
-The live `config.js` file is excluded from Git. The included `config.example.js` contains only a placeholder. Authentication should be added before hosting the application as a public live demo.
+- API routes require a valid Cognito JWT.
+- Unauthenticated API requests receive an HTTP 401 response.
+- Each DynamoDB record is associated with the signed-in user's Cognito ID.
+- Users can only view, update, or delete their own records.
+- The live `config.js` file is excluded from Git.
+- No passwords or client secrets are stored in the repository.
+
+## Verified functionality
+
+- Authenticated create, read, update, and delete operations
+- Data persistence after refreshing
+- Data hidden after signing out
+- Data restored after signing back in
+- Unauthenticated API access rejected

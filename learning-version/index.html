@@ -4,42 +4,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Job Application Tracker</title>
-  <link rel="stylesheet" href="styles.css">
+ <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
   <h1>Job Application Tracker</h1>
   <p>Track every opportunity in one place.</p>
-  <button id="addButton">Add Application</button>
 
-  <h2>Add a new application</h2>
+  <section id="authSection">
+    <p id="authStatus">Not signed in</p>
+    <button id="signInButton">Sign In</button>
+    <button id="signOutButton" hidden>Sign Out</button>
+  </section>
 
-  <label for="company">Company</label>
-  <input id="company" type="text" placeholder="Example: Amazon">
+  <main id="trackerApp" hidden>
+    <button id="addButton">Add Application</button>
 
-  <label for="role">Job title</label>
-  <input id="role" type="text" placeholder="Example: Cloud Engineer">
+    <h2>Add a new application</h2>
 
-  <label for="status">Status</label>
-  <select id="status">
-    <option value="Saved">Saved</option>
-    <option value="Applied" selected>Applied</option>
-    <option value="Interview">Interview</option>
-    <option value="Offer">Offer</option>
-    <option value="Rejected">Rejected</option>
-  </select>
+    <label for="company">Company</label>
+    <input id="company" type="text" placeholder="Example: Amazon">
 
-  <label for="dateApplied">Date applied</label>
-  <input id="dateApplied" type="date">
+    <label for="role">Job title</label>
+    <input id="role" type="text" placeholder="Example: Cloud Engineer">
 
-  <button id="saveButton">Save Application</button>
+    <label for="status">Status</label>
+    <select id="status">
+      <option value="Saved">Saved</option>
+      <option value="Applied" selected>Applied</option>
+      <option value="Interview">Interview</option>
+      <option value="Offer">Offer</option>
+      <option value="Rejected">Rejected</option>
+    </select>
 
-  <h2>My Applications</h2>
-  <p id="totalCount"></p>
-  <button id="clearButton">Clear All Applications</button>
-  <ul id="applicationList"></ul>
-<script src="config.js"></script>
-<script src="app.js"></script>
-  <script src="app.js"></script>
+    <label for="dateApplied">Date applied</label>
+    <input id="dateApplied" type="date">
+
+    <button id="saveButton">Save Application</button>
+
+    <h2>My Applications</h2>
+    <p id="totalCount"></p>
+    <ul id="applicationList"></ul>
+  </main>
+
+  <script src="config.js?v=3"></script>
+<script src="auth.js?v=3"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
-
